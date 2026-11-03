@@ -1,10 +1,2 @@
-Update Agent Hub (server.js, index.html). Do not edit any agent or source file.
 
-1. SUITE CHOICE: on a new project, ask "How does the app access its database?" Inline = SQL strings or metadata (SqlCommand, Dapper, stored procedures, CommandText, SqlDataSource, TableAdapter, ADODB). Core = EF Core (entity models, DbContext, IEntityTypeConfiguration, DTKN_VW_ views). Show a warning: do not use both suites on one repo without a path-by-path plan.
-2. PROJECT VALUES FORM per suite, saved per project: Inline = AppName, workspace-root, input-excel-path. Core = AppName, workspace-root, input-excel-path, sln-path, agents-dir. Read the real prompt for each phase from that suite's PROMPTS.md, replace the placeholders, block Run while any value is empty, and show the final prompt.
-3. GUIDED MODE (default): the UI prepares the filled prompt for each phase and shows which agent to attach, with a Copy button. Headless mode via the Copilot CLI is off and marked experimental, because agents ask for approval in chat.
-4. PROGRESS FROM DISK: watch <workspace-root>/.protegrity-work and show, per phase, which expected files exist, with a preview. Use Inline names: reference-list.csv, transformation-log.md, test-results.md. Use Core names: impact-analysis.json, approved-plan.json, transformation-log.json, validation-report.json/.md, build-result.json, test-result.json. Read the other names from the orchestrator files rather than guessing. Never edit or copy these files.
-5. APPROVAL GATES in the flow view: Inline after phases 1, 2 and 4. Core after phases 4 and 6. Mark them as "answered in chat" and show a gate as passed when its file exists (for example approved-plan.json).
-6. Hide Core's older phase 6 infra-build-test agent by default, with a "Show older agent" toggle labelled "may be superseded".
-7. STARTUP CHECK: python --version, whether openpyxl and xlrd are installed, and the copilot CLI version. Explain in plain words that the scripts try to install openpyxl by themselves and may fail without internet.
-8. Branch safety: before any Transformation phase, check the repo is a git repo with a clean working tree and show the current branch name.
+
