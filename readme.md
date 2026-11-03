@@ -1,12 +1,10 @@
-STEP 0: UNDERSTAND THE TWO SUITES
-Context: the previous developer delivered two folders: ".NET Splitted - Inline" and ".NET Core Splitted". Each has about 8 phase agents, an orchestrator, a PROMPTS.md and helper Python scripts. I do not know why there are two. Work it out from the files and answer:
-1. Does the split make sense? What is each suite for: which kind of .NET application, which data-access style (direct SQL calls, ADO.NET, EF Core), and what kind of change it makes (for example wrappers at SQL call sites versus EF model setters and view mappings)? Cite the files.
-2. Phase-by-phase comparison table: Phase | Inline agent | Core agent | What differs. Show where the phases do not line up (for example Core has two phase 6 agents and a phase 7 infra-build-test).
-3. How do I choose the right suite for a given repository? List the signs to look for in the code.
-4. Can both suites be used on the same repository? Would they overlap or conflict?
-5. Python helper scripts: for each one give the name, which suite and agent calls it, what it does, its inputs and outputs, whether it changes files, and the Python version and packages it needs. Are the scripts in the two suites copies or different?
-6. What is shared by both suites (prompt format, work folder, placeholders, approval step) and what is specific to one?
-Start your answer with a 6-line plain summary of Step 0.
+Update Agent Hub (server.js, index.html). Do not edit any agent or source file.
 
-Add to the OUTPUT section:
-F. The Step 0 answers, as tables and short bullets.
+1. SUITE CHOICE: on a new project, ask "How does the app access its database?" Inline = SQL strings or metadata (SqlCommand, Dapper, stored procedures, CommandText, SqlDataSource, TableAdapter, ADODB). Core = EF Core (entity models, DbContext, IEntityTypeConfiguration, DTKN_VW_ views). Show a warning: do not use both suites on one repo without a path-by-path plan.
+2. PROJECT VALUES FORM per suite, saved per project: Inline = AppName, workspace-root, input-excel-path. Core = AppName, workspace-root, input-excel-path, sln-path, agents-dir. Read the real prompt for each phase from that suite's PROMPTS.md, replace the placeholders, block Run while any value is empty, and show the final prompt.
+3. GUIDED MODE (default): the UI prepares the filled prompt for each phase and shows which agent to attach, with a Copy button. Headless mode via the Copilot CLI is off and marked experimental, because agents ask for approval in chat.
+4. PROGRESS FROM DISK: watch <workspace-root>/.protegrity-work and show, per phase, which expected files exist, with a preview. Use Inline names: reference-list.csv, transformation-log.md, test-results.md. Use Core names: impact-analysis.json, approved-plan.json, transformation-log.json, validation-report.json/.md, build-result.json, test-result.json. Read the other names from the orchestrator files rather than guessing. Never edit or copy these files.
+5. APPROVAL GATES in the flow view: Inline after phases 1, 2 and 4. Core after phases 4 and 6. Mark them as "answered in chat" and show a gate as passed when its file exists (for example approved-plan.json).
+6. Hide Core's older phase 6 infra-build-test agent by default, with a "Show older agent" toggle labelled "may be superseded".
+7. STARTUP CHECK: python --version, whether openpyxl and xlrd are installed, and the copilot CLI version. Explain in plain words that the scripts try to install openpyxl by themselves and may fail without internet.
+8. Branch safety: before any Transformation phase, check the repo is a git repo with a clean working tree and show the current branch name.
