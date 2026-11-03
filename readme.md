@@ -1,32 +1,40 @@
-READ-ONLY, with one exception: you may create one new file, agent-hub-spec/agent-descriptions.md, containing your final answer. Do not edit, rename or delete anything else.
+READ-ONLY, except you may create two new files: agent-hub-spec/ui-groups.json and agent-hub-spec/ui-groups.md. Do not edit or delete anything else.
 
-Read every agent .md file, orchestrator, PROMPTS.md, Python helper and overview document in this workspace (both suites, Inline and Core, plus 03 Integration Service Analysis Agent, 04 SSIS, 05 SSRS, 06_HistoryDataTokenization, SP_Analysis_Prompt and sql agent). Cite the file path for every statement. Write UNKNOWN where the files do not say. Do not guess.
+Use agent-hub-spec/agent-descriptions.md as your main source. Re-open an agent file only to check or fill a gap. Cite file paths. Write "UNKNOWN" where the files do not say. Never guess.
 
-PART A: IS THIS HOW IT WORKS?
-For each statement below, answer CORRECT, PARTLY CORRECT or WRONG, then explain in one or two lines with evidence. If it is not fully correct, say what really happens.
-1. The agents fall into two groups: CODE ANALYSIS (read-only, ends with an impact report) and CODE TRANSFORMATION (changes code and then validates and tests it, plus the evidence report). In both suites, phases 1 to 4 are analysis and phases 5 to 8 are transformation.
-2. The user only supplies a repo folder and a PII catalogue sheet. Each agent reads its own instructions and finds what else it needs.
-3. Each phase hands its result to the next as files on disk. Nothing has to be uploaded by hand between phases.
-4. Each phase can run in a fresh chat session and still pick up earlier results from the work folder.
-5. The impact report needs the user's approval before phase 5 (transformation) can start.
-6. Analysis and transformation can run at different times and by different people, as long as the analysis output is kept and approved.
-7. No agent creates git branches, commits code or opens pull requests.
-8. The Inline suite is the older approach and the Core suite is the newer one.
-9. The agents are real Copilot custom agents that can be run by name from the command line, without needing questions answered in a chat.
+GOAL
+I am building a UI with one CARD per group of agents. Clicking a card opens a node-style flow (like n8n): one node per agent, arrows between them, and for each node a smart summary, its inputs and outputs, and where its logs are.
 
-PART B: DETAILED DESCRIPTION OF EVERY AGENT
-One entry per agent, grouped as Code analysis, then Code transformation, then Other (orchestrators, helpers, prompt files). Use this layout:
-- Name, file path, suite, phase number.
-- Purpose in 2 to 3 plain sentences, written for someone who has never seen it.
-- Group, and why.
-- Inputs: files it reads (exact names and folders), placeholders it needs, anything it asks the user.
-- Outputs: files it writes (exact names, folders, formats) and which later agent uses them.
-- Does it change my source files? Which ones and how.
-- Where it stops to ask the user a question or for approval, with the exact wording.
-- What can go wrong, and what the user must do about it.
+GROUPS
+- Always create "Code analysis agents" and "Code transformation agents", covering both suites (Inline and Core).
+- Also create a separate group for any different kind of activity that does not fit those two, for example testing and validation, reporting and evidence, orchestration, or the SQL, SSIS, SSRS and tokenization folders. Name each group by what it does. Only create a group if agents really belong in it.
+- Every agent goes in exactly one group.
 
-PART C: THE WHOLE FLOW IN ONE PAGE
-For each suite: the order of all agents, what goes in, what each phase hands to the next (file names), where the approval happens, and what comes out at the end. Then explain in plain words how Inline and Core differ and when to use each.
+ui-groups.json STRUCTURE
+{
+ "groups": [{
+   "id", "title",
+   "cardSummary": "max 25 words, plain English",
+   "changesSourceCode": true/false,
+   "youProvide": ["..."], "youGet": ["..."],
+   "suites": ["Inline","Core"],
+   "agents": ["agent ids in run order"],
+   "flow": { "edges": [{"from","to","via":"exact file names handed over"}], "approvalGates": [{"between":["id","id"],"wording":"exact text asked","recordedIn":"file or UNKNOWN"}] }
+ }],
+ "agents": [{
+   "id", "name", "file", "suite", "phase", "group",
+   "smartSummary": "max 30 words: what is happening in this step",
+   "steps": ["3 to 5 short steps of what it does"],
+   "inputs": [{"name","kind":"file|folder|placeholder|user-answer","pathOrPattern","producedBy"}],
+   "outputs": [{"name","pathOrPattern","format","usedBy"}],
+   "logs": [{"name","pathOrPattern","what it shows"}],
+   "changesSourceFiles": true/false, "whichFiles": "...",
+   "asksUser": [{"when","wording"}],
+   "risks": ["..."]
+ }]
+}
+Checks: valid JSON, every agent appears once, every edge refers to an existing agent id.
 
-PART D: GAPS
-List everything you were not sure about or could not read, and the questions I should ask the .NET colleague who built these agents.
+ui-groups.md: maximum 40 lines for me to read. A table with Group | Card summary | Agent count | Changes code? Then the groups with their agents in order. Then the UNKNOWN items.
+
+Finally show in the chat: the groups table and the list of any agents you were unsure how to group.
