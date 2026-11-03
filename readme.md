@@ -1,40 +1,12 @@
-READ-ONLY, except you may create two new files: agent-hub-spec/ui-groups.json and agent-hub-spec/ui-groups.md. Do not edit or delete anything else.
+STEP 0: UNDERSTAND THE TWO SUITES
+Context: the previous developer delivered two folders: ".NET Splitted - Inline" and ".NET Core Splitted". Each has about 8 phase agents, an orchestrator, a PROMPTS.md and helper Python scripts. I do not know why there are two. Work it out from the files and answer:
+1. Does the split make sense? What is each suite for: which kind of .NET application, which data-access style (direct SQL calls, ADO.NET, EF Core), and what kind of change it makes (for example wrappers at SQL call sites versus EF model setters and view mappings)? Cite the files.
+2. Phase-by-phase comparison table: Phase | Inline agent | Core agent | What differs. Show where the phases do not line up (for example Core has two phase 6 agents and a phase 7 infra-build-test).
+3. How do I choose the right suite for a given repository? List the signs to look for in the code.
+4. Can both suites be used on the same repository? Would they overlap or conflict?
+5. Python helper scripts: for each one give the name, which suite and agent calls it, what it does, its inputs and outputs, whether it changes files, and the Python version and packages it needs. Are the scripts in the two suites copies or different?
+6. What is shared by both suites (prompt format, work folder, placeholders, approval step) and what is specific to one?
+Start your answer with a 6-line plain summary of Step 0.
 
-Use agent-hub-spec/agent-descriptions.md as your main source. Re-open an agent file only to check or fill a gap. Cite file paths. Write "UNKNOWN" where the files do not say. Never guess.
-
-GOAL
-I am building a UI with one CARD per group of agents. Clicking a card opens a node-style flow (like n8n): one node per agent, arrows between them, and for each node a smart summary, its inputs and outputs, and where its logs are.
-
-GROUPS
-- Always create "Code analysis agents" and "Code transformation agents", covering both suites (Inline and Core).
-- Also create a separate group for any different kind of activity that does not fit those two, for example testing and validation, reporting and evidence, orchestration, or the SQL, SSIS, SSRS and tokenization folders. Name each group by what it does. Only create a group if agents really belong in it.
-- Every agent goes in exactly one group.
-
-ui-groups.json STRUCTURE
-{
- "groups": [{
-   "id", "title",
-   "cardSummary": "max 25 words, plain English",
-   "changesSourceCode": true/false,
-   "youProvide": ["..."], "youGet": ["..."],
-   "suites": ["Inline","Core"],
-   "agents": ["agent ids in run order"],
-   "flow": { "edges": [{"from","to","via":"exact file names handed over"}], "approvalGates": [{"between":["id","id"],"wording":"exact text asked","recordedIn":"file or UNKNOWN"}] }
- }],
- "agents": [{
-   "id", "name", "file", "suite", "phase", "group",
-   "smartSummary": "max 30 words: what is happening in this step",
-   "steps": ["3 to 5 short steps of what it does"],
-   "inputs": [{"name","kind":"file|folder|placeholder|user-answer","pathOrPattern","producedBy"}],
-   "outputs": [{"name","pathOrPattern","format","usedBy"}],
-   "logs": [{"name","pathOrPattern","what it shows"}],
-   "changesSourceFiles": true/false, "whichFiles": "...",
-   "asksUser": [{"when","wording"}],
-   "risks": ["..."]
- }]
-}
-Checks: valid JSON, every agent appears once, every edge refers to an existing agent id.
-
-ui-groups.md: maximum 40 lines for me to read. A table with Group | Card summary | Agent count | Changes code? Then the groups with their agents in order. Then the UNKNOWN items.
-
-Finally show in the chat: the groups table and the list of any agents you were unsure how to group.
+Add to the OUTPUT section:
+F. The Step 0 answers, as tables and short bullets.
