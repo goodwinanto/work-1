@@ -1,25 +1,14 @@
-FIX the existing Agent Hub UI (edit only its own files; never edit agent files, PROMPTS.md or anything in .protegrity-work; keep the .bak backups). Do not run agents. Do not rebuild from scratch.
+READ-ONLY. Do not change any code, do not run any agent, do not run npm, and do not edit anything except one new file: agent-hub-spec/HOW-IT-WORKS.md.
 
-REMOVE the extra groups Copilot added earlier: Code discovery, Input and catalogue (intake), Orchestration, Report and evidence, Validation and testing, and any similar group. They must not appear as cards, sidebar groups or filters anywhere. Remove the old groups sidebar entirely. Do not add them back.
+Read Agent Hub's server.js, index.html and config files and explain exactly how the app works, for someone who did not write it and is not an expert developer. Plain English, short sentences. Cite function names and line numbers for everything. Write UNKNOWN where you cannot tell. Do not guess.
 
-THE ONLY TWO GROUPS are "Code analysis" and "Code transformation". Phase numbers decide the group, taken from the agent file names:
-- Code analysis = phases 1 to 4 (including the catalogue parser, which is phase 1, and the impact report, which is phase 4).
-- Code transformation = phases 5 to 8 (including validation, build and test, unit tests, and the evidence report).
-Each engine has its own folder and its own agents. Never mix them:
-- ".NET engine" = the Inline folder (the one containing "Inline"). Analysis = its phase 1-4 agents; transformation = its phase 5-8 agents.
-- ".NET Core engine" = the Core folder (the one containing "Core"). Analysis = its phase 1-4 agents; transformation = its phase 5-8 agents.
-
-NAVIGATION (breadcrumbs on every screen, all clickable, plus a back button)
-Home > Java (greyed, "Coming soon") | .NET
-.NET > ".NET engine" | ".NET Core engine"
-Engine > two method cards: "DSG (REST API)" (greyed, "Coming soon", not clickable, also not by keyboard) and "SQL" (active).
-SQL page > two cards: "Code analysis" and "Code transformation", each listing ONLY that engine's agents for those phases as workers. Keep what already exists on this page: the Orchestrator guide button (it is a guide, never a group, never a phase node), the project values form, the progress bar, the Approval connector, the flows, the Report panel and the phase panels.
-
-LEFT SIDEBAR (if kept): show only this tree: Engine > SQL > Code analysis / Code transformation > phases. No other groups.
-
-RULES
-- Hide Core's older phase 6 infra-build-test agent behind a "Show older agent" toggle labelled "may be superseded", so the Core transformation card normally shows 4 phases.
-- The orchestrators, PROMPTS.md and Python helpers are not workers and do not appear as cards.
-- Methods are data-driven (config: id, title, status, agentsFolder), so DSG can be added later without changing shared UI code. Keep progress, project values and history separate per engine and method.
-
-CHECK before you finish and report it in your answer: for each engine, the number of agents in Code analysis and in Code transformation (expected 4 and 4), and list the file names in each. Report any agent that does not fit a phase 1-8 and where you put it. Do not claim you tested something you did not.
+1. BIG PICTURE: 10 lines, plus a Mermaid diagram of browser, server.js, files and child processes.
+2. FILES AND FOLDERS: everything Agent Hub reads or writes (config.json, runs/, saved repositories, project values, .bak files, the work folder). For each: what is stored, an example, whether it can contain PII or secrets, and whether the app ever writes into .protegrity-work (it must never).
+3. BUTTON BY BUTTON: a table with every screen and every control (Home, Back, breadcrumbs, Refresh, Settings, Workflows and History tabs, sidebar items, Java and .NET cards, SQL and DSG cards, Orchestrator guide, Saved repository, Save repository values, Check branch safety, card clicks, View phase workers, Show older agent, I answered in chat, Browse, Copy, Run, Stop, Preview, Raw/Formatted/Steps, and any other). Columns: Screen | Control | What the user sees | Browser function (name, line) | API call (method, URL, body) | Server handler (name, line) | What it reads, writes or starts | What comes back | What the screen does next | Errors handled.
+4. API REFERENCE: every endpoint with method, path, parameters, an example request and response, who calls it, and its security checks.
+5. STEP-BY-STEP TRACES for these scenarios, each as a numbered list and a Mermaid sequence diagram: (a) opening the app, (b) opening a suite page (how phases, cards and the hidden older agent are worked out from file names), (c) saving repository values, (d) Check branch safety (the exact git commands), (e) running an agent (the exact command line built, working folder, how the prompt is passed, how output streams back, how the run is saved), (f) a run that fails: read the newest failed phase 1 run log and explain exactly where and why it failed.
+6. PROGRESS, EVIDENCE AND GATES: how "x of 4 done", Locked/Ready, "Missing" evidence and approval gates are decided, with the exact file names and logic. List which file names are verified against the orchestrator and which are guesses.
+7. SAFETY: what stops writes to agent files and .protegrity-work, how localhost and the request header are enforced, and what could still go wrong.
+8. PROBLEMS: a numbered list of bugs, gaps, dead code, hardcoded names, and anything that differs from this design: two cards (Code analysis phases 1-4 and Transformation phases 5-8), Transformation locked until the report exists and approval is recorded. Give each a severity (high, medium or low). Known example: the Transformation card shows "Ready" with nothing analysed.
+9. GLOSSARY of every term the UI uses.
+Finish with a 15-line summary in the chat.
