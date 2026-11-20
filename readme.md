@@ -1,14 +1,26 @@
-READ-ONLY. Do not change any code, do not run any agent, do not run npm, and do not edit anything except one new file: agent-hub-spec/HOW-IT-WORKS.md.
+I need to fix token and credit capture in the Protegrity Agent Hub usage collector, which reads GitHub Copilot CLI telemetry.
 
-Read Agent Hub's server.js, index.html and config files and explain exactly how the app works, for someone who did not write it and is not an expert developer. Plain English, short sentences. Cite function names and line numbers for everything. Write UNKNOWN where you cannot tell. Do not guess.
+Problems:
+1. Token totals look cumulative. A second Phase 1 run showed 120,427 tokens vs 81,787 for the first (difference ~38.6K), so runs seem to include earlier usage.
+2. Credits show "Credits not reported".
+3. Phase 4 shows "Usage not captured".
+4. The By application / By agent / By workflow tables show "No runs" even though runs are listed.
 
-1. BIG PICTURE: 10 lines, plus a Mermaid diagram of browser, server.js, files and child processes.
-2. FILES AND FOLDERS: everything Agent Hub reads or writes (config.json, runs/, saved repositories, project values, .bak files, the work folder). For each: what is stored, an example, whether it can contain PII or secrets, and whether the app ever writes into .protegrity-work (it must never).
-3. BUTTON BY BUTTON: a table with every screen and every control (Home, Back, breadcrumbs, Refresh, Settings, Workflows and History tabs, sidebar items, Java and .NET cards, SQL and DSG cards, Orchestrator guide, Saved repository, Save repository values, Check branch safety, card clicks, View phase workers, Show older agent, I answered in chat, Browse, Copy, Run, Stop, Preview, Raw/Formatted/Steps, and any other). Columns: Screen | Control | What the user sees | Browser function (name, line) | API call (method, URL, body) | Server handler (name, line) | What it reads, writes or starts | What comes back | What the screen does next | Errors handled.
-4. API REFERENCE: every endpoint with method, path, parameters, an example request and response, who calls it, and its security checks.
-5. STEP-BY-STEP TRACES for these scenarios, each as a numbered list and a Mermaid sequence diagram: (a) opening the app, (b) opening a suite page (how phases, cards and the hidden older agent are worked out from file names), (c) saving repository values, (d) Check branch safety (the exact git commands), (e) running an agent (the exact command line built, working folder, how the prompt is passed, how output streams back, how the run is saved), (f) a run that fails: read the newest failed phase 1 run log and explain exactly where and why it failed.
-6. PROGRESS, EVIDENCE AND GATES: how "x of 4 done", Locked/Ready, "Missing" evidence and approval gates are decided, with the exact file names and logic. List which file names are verified against the orchestrator and which are guesses.
-7. SAFETY: what stops writes to agent files and .protegrity-work, how localhost and the request header are enforced, and what could still go wrong.
-8. PROBLEMS: a numbered list of bugs, gaps, dead code, hardcoded names, and anything that differs from this design: two cards (Code analysis phases 1-4 and Transformation phases 5-8), Transformation locked until the report exists and approval is recorded. Give each a severity (high, medium or low). Known example: the Transformation card shows "Ready" with nothing analysed.
-9. GLOSSARY of every term the UI uses.
-Finish with a 15-line summary in the chat.
+Data sources (Copilot CLI, local):
+- ~/.copilot/session-state/<session-id>/events.jsonl
+- ~/.copilot/session-store.db (SQLite), table assistant_usage_events
+
+Please do the following:
+1. First, inspect the current collector code and tell me where tokens are read and aggregated. Do not change anything yet. Find out whether runs share a session ID or whether totals are summed across sessions.
+2. Key every run by session ID. Per-run tokens must come only from that session. If a session is reused, store a snapshot at run start and report end minus start.
+3. Read final tokens from the session.shutdown event (data.modelMetrics.<model>.usage). Treat inputTokens as a total that already includes cache, so uncached = input - cacheRead - cacheWrite. Do not add cached tokens on top of input. Report input, output, cacheRead, cacheWrite and total separately.
+4. If there is no session.shutdown event (e.g. Phase 4), fall back to summing the per-call usage events and mark the run as "partial", not "not captured".
+5. Credits: query ~/.copilot/session-store.db with SELECT SUM(total_nano_aiu) FROM assistant_usage_events WHERE session_id = ?, divided by 1e9. Open the DB read-only. If the table or column is missing, fall back to tokens x model rate from a config file (1 credit = $0.01) and label it "estimated".
+6. Fix the By application / By agent / By workflow aggregations so they group the runs and sum tokens and credits.
+7. Add a "Download usage report" output that includes session ID, phase, agent, model, input, output, cacheRead, cacheWrite, total tokens, credits, and status (measured / partial / estimated).
+
+Rules:
+- Read only usage metadata. Do not read, copy, log, or display prompt or response content from events.jsonl.
+- Don't modify or delete anything under ~/.copilot.
+- Keep changes minimal and show a diff summary.
+- After changes, run the collector against my existing sessions and print a table: session ID, phase, tokens, credits, status. Flag any session where the numbers look cumulative.
